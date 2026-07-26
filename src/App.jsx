@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CompressIcon from '@mui/icons-material/Compress';
 import ExploreIcon from '@mui/icons-material/Explore';
 import HistoryIcon from '@mui/icons-material/History';
@@ -96,45 +94,6 @@ function WeatherMetric({ icon, label, value }) {
         <Typography fontWeight={700} variant="body1">{value}</Typography>
       </Box>
     </Stack>
-  );
-}
-
-function ForecastRail({ ariaLabel, children }) {
-  const railRef = useRef(null);
-
-  const scroll = (direction) => {
-    railRef.current?.scrollBy({
-      behavior: 'smooth',
-      left: direction * railRef.current.clientWidth * 0.8,
-    });
-  };
-
-  return (
-    <Box>
-      <Stack alignItems="center" direction="row" justifyContent="flex-end" mb={0.75} spacing={0.25}>
-        <IconButton aria-label={`Show previous ${ariaLabel}`} onClick={() => scroll(-1)} size="small">
-          <ChevronLeftIcon fontSize="small" />
-        </IconButton>
-        <IconButton aria-label={`Show more ${ariaLabel}`} onClick={() => scroll(1)} size="small">
-          <ChevronRightIcon fontSize="small" />
-        </IconButton>
-      </Stack>
-      <Box
-        aria-label={ariaLabel}
-        ref={railRef}
-        sx={{
-          display: 'flex',
-          gap: { xs: 1.5, sm: 2 },
-          overflowX: 'auto',
-          pb: 1,
-          scrollbarWidth: 'thin',
-          scrollSnapType: 'x mandatory',
-          touchAction: 'pan-x',
-        }}
-      >
-        {children}
-      </Box>
-    </Box>
   );
 }
 
@@ -701,23 +660,23 @@ export default function App() {
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
                     <Stack spacing={2.5}>
                       <Box>
-                        <Typography color="text.secondary" mb={1} variant="body2">Next 36 hours</Typography>
-                        <ForecastRail ariaLabel="hourly forecast">
-                          {forecast.slice(0, 12).map((period) => (
+                        <Typography color="text.secondary" mb={1} variant="body2">Next 15 hours</Typography>
+                        <Box sx={{ display: 'grid', gap: { xs: 0.75, sm: 1.25 }, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+                          {forecast.slice(0, 5).map((period) => (
                             <Stack
                               alignItems="center"
                               key={period.dt}
                               spacing={0.5}
-                              sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: { xs: '0 0 72px', sm: '0 0 86px' }, px: 0.75, py: 1.25, scrollSnapAlign: 'start' }}
+                              sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, minWidth: 0, px: { xs: 0.25, sm: 0.75 }, py: 1.25 }}
                             >
                               <Typography color="text.secondary" variant="caption">
                                 {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
                               </Typography>
-                              <Box alt={period.weather[0].description} component="img" src={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} sx={{ height: 42, width: 42 }} />
+                              <Box alt={period.weather[0].description} component="img" src={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} sx={{ height: { xs: 34, sm: 40 }, width: { xs: 34, sm: 40 } }} />
                               <Typography fontWeight={700} variant="body2">{Math.round(period.main.temp)}°</Typography>
                             </Stack>
                           ))}
-                        </ForecastRail>
+                        </Box>
                       </Box>
                       <PrecipitationChart periods={forecast} timezone={weather.timezone} />
                     </Stack>
