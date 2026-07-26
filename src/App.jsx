@@ -16,7 +16,6 @@ import {
   Box,
   Button,
   Chip,
-  Collapse,
   CircularProgress,
   Container,
   Divider,
@@ -24,7 +23,9 @@ import {
   InputAdornment,
   Paper,
   Stack,
+  Tab,
   TextField,
+  Tabs,
   Typography,
 } from '@mui/material';
 
@@ -203,7 +204,8 @@ export default function App() {
   const [forecast, setForecast] = useState([]);
   const [forecastStatus, setForecastStatus] = useState('idle');
   const [recentLocations, setRecentLocations] = useState([]);
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+  const [activeSection, setActiveSection] = useState('overview');
+  const [forecastMode, setForecastMode] = useState('daily');
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
 
@@ -354,7 +356,7 @@ export default function App() {
       return;
     }
 
-    setIsDetailsExpanded((expanded) => !expanded);
+    setActiveSection('details');
   };
 
   const condition = weather?.weather?.[0];
@@ -497,15 +499,39 @@ export default function App() {
                   <Typography color="text.secondary" mt={0.75}>
                     High {Math.round(weather.main.temp_max)}° · Low {Math.round(weather.main.temp_min)}°
                   </Typography>
+                  <Button onClick={() => setActiveSection('details')} size="small" sx={{ mt: 1.5, px: 0 }} variant="text">
+                    View weather details
+                  </Button>
                 </Box>
 
+                <Tabs
+                  aria-label="Weather dashboard sections"
+                  onChange={(_, section) => setActiveSection(section)}
+                  sx={{
+                    '& .MuiTab-root': { minWidth: 88 },
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                  }}
+                  value={activeSection}
+                  variant="scrollable"
+                >
+                  <Tab label="Overview" value="overview" />
+                  <Tab label="Forecast" value="forecast" />
+                  <Tab label="Details" value="details" />
+                </Tabs>
+
+                {activeSection === 'forecast' && (
+                  <>
                 <Box>
                   <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1.5}>
-                    <Typography fontWeight={700} variant="h6">Next 15 hours</Typography>
+                    <Typography fontWeight={700} variant="h6">Forecast</Typography>
                     {forecastStatus === 'error' && <Typography color="text.secondary" variant="caption">Forecast unavailable</Typography>}
                   </Stack>
+                  <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                    <Button onClick={() => setForecastMode('daily')} size="small" variant={forecastMode === 'daily' ? 'contained' : 'text'}>Week</Button>
+                    <Button onClick={() => setForecastMode('hourly')} size="small" variant={forecastMode === 'hourly' ? 'contained' : 'text'}>Hours</Button>
+                  </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
-                  {forecastStatus === 'success' && (
+                  {forecastStatus === 'success' && forecastMode === 'hourly' && (
                     <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.75, scrollbarWidth: 'thin' }}>
                       {forecast.slice(0, 5).map((period) => (
                         <Stack
@@ -525,9 +551,9 @@ export default function App() {
                   )}
                 </Box>
 
-                {forecastStatus === 'success' && (
+                {forecastStatus === 'success' && forecastMode === 'daily' && (
                   <Box>
-                    <Typography fontWeight={700} mb={1.5} variant="h6">This week</Typography>
+                    <Typography color="text.secondary" mb={1.5} variant="body2">Five-day outlook</Typography>
                     <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.75, scrollbarWidth: 'thin' }}>
                       {dailyForecast.map((day) => (
                         <Stack
@@ -545,7 +571,11 @@ export default function App() {
                     </Box>
                   </Box>
                 )}
+                  </>
+                )}
 
+                {activeSection === 'overview' && (
+                  <>
                 <Divider />
 
                 <Box sx={{ display: 'grid', gap: { xs: 3, sm: 4 }, gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' } }}>
@@ -628,7 +658,10 @@ export default function App() {
                   </Stack>
                 </Box>
 
-                <Collapse in={isDetailsExpanded}>
+                  </>
+                )}
+
+                {activeSection === 'details' && (
                   <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', borderLeft: '3px solid', borderColor: 'primary.main', borderRadius: 2, px: 2.5, py: 2 }}>
                     <Typography fontWeight={700} variant="subtitle2">Expanded weather details</Typography>
                     <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, mt: 1.5 }}>
@@ -638,9 +671,9 @@ export default function App() {
                       <Box><Typography color="text.secondary" variant="caption">Coordinates</Typography><Typography fontWeight={700}>{weather.coord.lat.toFixed(2)}°, {weather.coord.lon.toFixed(2)}°</Typography></Box>
                     </Box>
                   </Box>
-                </Collapse>
+                )}
                 <Typography align="center" color="text.secondary" variant="caption">
-                  Click the dashboard background to {isDetailsExpanded ? 'hide' : 'show'} expanded details.
+                  Click the dashboard background to open expanded details.
                 </Typography>
               </Stack>
             </Paper>
