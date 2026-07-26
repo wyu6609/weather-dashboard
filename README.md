@@ -7,7 +7,7 @@ Netlify Functions.
 
 https://weatherly-dashboard-wyu6609.netlify.app
 
-![Weatherly dashboard preview](assets/weatherly-preview.webp)
+![Weatherly dashboard demo](assets/weatherly-demo.gif)
 
 ## Run locally
 
