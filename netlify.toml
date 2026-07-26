@@ -11,8 +11,3 @@
 [dev]
   command = "npx vite"
   targetPort = 5173
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
