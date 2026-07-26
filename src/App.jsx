@@ -108,7 +108,6 @@ function ForecastRail({ ariaLabel, children }) {
   return (
     <Box>
       <Stack alignItems="center" direction="row" justifyContent="flex-end" mb={0.75} spacing={0.25}>
-        <Typography color="text.secondary" mr="auto" variant="caption">Swipe to explore</Typography>
         <IconButton aria-label={`Show previous ${ariaLabel}`} onClick={() => scroll(-1)} size="small">
           <ChevronLeftIcon fontSize="small" />
         </IconButton>
@@ -580,7 +579,7 @@ export default function App() {
                           alignItems="center"
                           key={period.dt}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: { xs: '0 0 92px', sm: '0 0 96px' }, px: 1.25, py: 1.5, scrollSnapAlign: 'start' }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: { xs: '0 0 72px', sm: '0 0 86px' }, px: 0.75, py: 1.25, scrollSnapAlign: 'start' }}
                         >
                           <Typography color="text.secondary" variant="caption">
                             {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
@@ -602,7 +601,7 @@ export default function App() {
                           alignItems="center"
                           key={day.day}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, flex: { xs: '0 0 92px', sm: '0 0 96px' }, px: 1.25, py: 1.5, scrollSnapAlign: 'start' }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, flex: { xs: '0 0 72px', sm: '0 0 86px' }, px: 0.75, py: 1.25, scrollSnapAlign: 'start' }}
                         >
                           <Typography fontWeight={700} variant="body2">{day.day}</Typography>
                           <Box alt={day.condition.description} component="img" src={`https://openweathermap.org/img/wn/${day.condition.icon}.png`} sx={{ height: 40, width: 40 }} />
