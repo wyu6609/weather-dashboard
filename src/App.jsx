@@ -137,6 +137,51 @@ function ForecastRail({ ariaLabel, children }) {
   );
 }
 
+function PrecipitationChart({ periods, timezone }) {
+  const data = periods.slice(0, 8);
+  const chartWidth = 640;
+  const chartHeight = 150;
+  const chartTop = 18;
+  const chartBottom = 118;
+  const barWidth = 42;
+  const gap = (chartWidth - data.length * barWidth) / (data.length + 1);
+
+  return (
+    <Box sx={{ bgcolor: 'rgba(125, 211, 252, 0.08)', borderRadius: 3, mb: 2.5, p: { xs: 1.5, sm: 2 } }}>
+      <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1}>
+        <Typography fontWeight={700} variant="subtitle2">Precipitation</Typography>
+        <Typography color="text.secondary" variant="caption">Next 24 hours</Typography>
+      </Stack>
+      <Box component="svg" role="img" aria-label="Chance of precipitation over the next 24 hours" sx={{ display: 'block', height: 'auto', width: '100%' }} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+        {[0, 50, 100].map((level) => {
+          const y = chartBottom - ((chartBottom - chartTop) * level) / 100;
+          return (
+            <g key={level}>
+              <line stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" x1="0" x2={chartWidth} y1={y} y2={y} />
+              <text fill="rgba(255,255,255,0.55)" fontSize="11" textAnchor="end" x="636" y={y - 4}>{level}%</text>
+            </g>
+          );
+        })}
+        {data.map((period, index) => {
+          const chance = Math.round((period.pop || 0) * 100);
+          const height = ((chartBottom - chartTop) * chance) / 100;
+          const x = gap + index * (barWidth + gap);
+          const y = chartBottom - height;
+          return (
+            <g key={period.dt}>
+              <rect fill="rgba(125, 211, 252, 0.72)" height={height} rx="6" width={barWidth} x={x} y={y} />
+              <text fill="#e0f2fe" fontSize="11" fontWeight="700" textAnchor="middle" x={x + barWidth / 2} y={Math.max(y - 5, 13)}>{chance}%</text>
+              <text fill="rgba(255,255,255,0.6)" fontSize="11" textAnchor="middle" x={x + barWidth / 2} y="140">
+                {formatLocalTime(period.dt, timezone, { hour: 'numeric' })}
+              </text>
+            </g>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
 function WeatherBackdrop({ condition, isDay }) {
   const conditionCode = condition?.id || 800;
   const isStorm = conditionCode >= 200 && conditionCode < 300;
@@ -604,6 +649,9 @@ export default function App() {
                     <Button onClick={() => setForecastMode('hourly')} size="small" variant={forecastMode === 'hourly' ? 'contained' : 'text'}>Hours</Button>
                   </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
+                  {forecastStatus === 'success' && forecastMode === 'hourly' && (
+                    <PrecipitationChart periods={forecast} timezone={weather.timezone} />
+                  )}
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
                     <ForecastRail ariaLabel="hourly forecast">
                       {forecast.slice(0, 12).map((period) => (
