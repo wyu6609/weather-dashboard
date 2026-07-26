@@ -97,47 +97,65 @@ function WeatherMetric({ icon, label, value }) {
   );
 }
 
-function PrecipitationChart({ periods, timezone }) {
+function HourlyForecastChart({ periods, temperatureUnit, timezone }) {
   const data = periods.slice(0, 8);
   const totalRainfall = data.reduce((total, period) => total + (period.rain?.['3h'] || 0), 0);
   const highestChance = Math.max(...data.map((period) => Math.round((period.pop || 0) * 100)));
-  const chartWidth = 375;
-  const chartHeight = 165;
-  const chartTop = 22;
-  const chartBottom = 132;
-  const barWidth = 28;
-  const gap = (chartWidth - data.length * barWidth) / (data.length + 1);
+  const temperatures = data.map((period) => period.main.temp);
+  const chartWidth = 380;
+  const chartHeight = 260;
+  const chartLeft = 24;
+  const chartRight = 356;
+  const chartTop = 32;
+  const chartBottom = 142;
+  const minTemperature = Math.floor(Math.min(...temperatures) - 2);
+  const maxTemperature = Math.ceil(Math.max(...temperatures) + 2);
+  const temperatureRange = Math.max(maxTemperature - minTemperature, 1);
+  const pointFor = (temperature, index) => ({
+    x: chartLeft + (index * (chartRight - chartLeft)) / (data.length - 1),
+    y: chartBottom - ((temperature - minTemperature) / temperatureRange) * (chartBottom - chartTop),
+  });
+  const points = data.map((period, index) => pointFor(period.main.temp, index));
+  const linePoints = points.map(({ x, y }) => `${x},${y}`).join(' ');
+  const areaPath = `M ${points[0].x} ${chartBottom} L ${linePoints.replaceAll(',', ' ')} L ${points.at(-1).x} ${chartBottom} Z`;
 
   return (
-    <Box sx={{ bgcolor: 'rgba(125, 211, 252, 0.08)', borderRadius: 3, mb: 2.5, p: { xs: 1.5, sm: 2 } }}>
+    <Box sx={{ bgcolor: 'rgba(125, 211, 252, 0.08)', borderRadius: 3, p: { xs: 1.5, sm: 2 } }}>
       <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1}>
-        <Typography fontWeight={700} variant="subtitle2">Precipitation</Typography>
-        <Typography color="text.secondary" variant="caption">Next 24 hours</Typography>
+        <Typography fontWeight={700} variant="subtitle2">24-hour outlook</Typography>
+        <Typography color="text.secondary" variant="caption">Temperature and conditions</Typography>
       </Stack>
-      <Box component="svg" role="img" aria-label="Chance of precipitation over the next 24 hours" sx={{ display: 'block', height: 'auto', width: '100%' }} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
-        {[0, 50, 100].map((level) => {
-          const y = chartBottom - ((chartBottom - chartTop) * level) / 100;
+      <Box component="svg" role="img" aria-label="Temperature trend and weather conditions over the next 24 hours" sx={{ display: 'block', height: 'auto', width: '100%' }} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+        {[0, 0.5, 1].map((position) => {
+          const y = chartBottom - (chartBottom - chartTop) * position;
+          const label = Math.round(minTemperature + temperatureRange * position);
           return (
-            <g key={level}>
+            <g key={position}>
               <line stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" x1="0" x2={chartWidth} y1={y} y2={y} />
-              <text fill="rgba(255,255,255,0.64)" fontSize="12" textAnchor="end" x="371" y={y - 5}>{level}%</text>
+              <text fill="rgba(255,255,255,0.6)" fontSize="11" textAnchor="end" x="374" y={y - 5}>{label}°</text>
             </g>
           );
         })}
+        <defs>
+          <linearGradient id="temperature-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#7dd3fc" stopOpacity="0.38" />
+            <stop offset="100%" stopColor="#7dd3fc" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#temperature-area)" />
+        <polyline fill="none" points={linePoints} stroke="#7dd3fc" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
         {data.map((period, index) => {
           const chance = Math.round((period.pop || 0) * 100);
-          const height = ((chartBottom - chartTop) * chance) / 100;
-          const x = gap + index * (barWidth + gap);
-          const y = chartBottom - height;
+          const { x, y } = points[index];
           return (
             <g key={period.dt}>
-              <rect fill="rgba(125, 211, 252, 0.72)" height={height} rx="6" width={barWidth} x={x} y={y} />
-              <text fill="#e0f2fe" fontSize="12" fontWeight="700" textAnchor="middle" x={x + barWidth / 2} y={Math.max(y - 6, 15)}>{chance}%</text>
-              {index % 2 === 0 && (
-                <text fill="rgba(255,255,255,0.7)" fontSize="12" textAnchor="middle" x={x + barWidth / 2} y="154">
-                  {formatLocalTime(period.dt, timezone, { hour: 'numeric' })}
-                </text>
-              )}
+              <circle cx={x} cy={y} fill="#0f2438" r="5" stroke="#7dd3fc" strokeWidth="3" />
+              <text fill="#e0f2fe" fontSize="12" fontWeight="700" textAnchor="middle" x={x} y={Math.max(y - 10, 15)}>{Math.round(period.main.temp)}°</text>
+              <image height="28" href={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} width="28" x={x - 14} y="158" />
+              <text fill="rgba(255,255,255,0.72)" fontSize="10" textAnchor="middle" x={x} y="207">{chance}%</text>
+              <text fill="rgba(255,255,255,0.68)" fontSize="10" textAnchor="middle" x={x} y="233">
+                {formatLocalTime(period.dt, timezone, { hour: 'numeric' })}
+              </text>
             </g>
           );
         })}
@@ -146,7 +164,7 @@ function PrecipitationChart({ periods, timezone }) {
         <Typography color="text.secondary" variant="caption">
           {totalRainfall > 0 ? `${totalRainfall.toFixed(1)} mm expected over 24 hours` : 'No measurable rain expected'}
         </Typography>
-        <Typography color="text.secondary" variant="caption">Peak chance: {highestChance}%</Typography>
+        <Typography color="text.secondary" variant="caption">Peak rain chance: {highestChance}% · °{temperatureUnit}</Typography>
       </Stack>
     </Box>
   );
@@ -658,28 +676,11 @@ export default function App() {
                   </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
-                    <Stack spacing={2.5}>
-                      <Box>
-                        <Typography color="text.secondary" mb={1} variant="body2">Next 24 hours</Typography>
-                        <Box sx={{ display: 'grid', gap: { xs: 0.75, sm: 1.25 }, gridTemplateColumns: { xs: 'repeat(4, minmax(0, 1fr))', md: 'repeat(8, minmax(0, 1fr))' } }}>
-                          {forecast.slice(0, 8).map((period) => (
-                            <Stack
-                              alignItems="center"
-                              key={period.dt}
-                              spacing={0.5}
-                              sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, minWidth: 0, px: { xs: 0.25, sm: 0.75 }, py: 1.25 }}
-                            >
-                              <Typography color="text.secondary" variant="caption">
-                                {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
-                              </Typography>
-                              <Box alt={period.weather[0].description} component="img" src={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} sx={{ height: { xs: 34, sm: 40 }, width: { xs: 34, sm: 40 } }} />
-                              <Typography fontWeight={700} variant="body2">{Math.round(period.main.temp)}°</Typography>
-                            </Stack>
-                          ))}
-                        </Box>
-                      </Box>
-                      <PrecipitationChart periods={forecast} timezone={weather.timezone} />
-                    </Stack>
+                    <HourlyForecastChart
+                      periods={forecast}
+                      temperatureUnit={temperatureUnit}
+                      timezone={weather.timezone}
+                    />
                   )}
 
                 {forecastStatus === 'success' && forecastMode === 'daily' && (
