@@ -56,6 +56,13 @@ function formatLocalTime(timestamp, timezone, options) {
     .format(new Date((timestamp + timezone) * 1000));
 }
 
+function formatDuration(seconds) {
+  const totalMinutes = Math.max(0, Math.round(seconds / 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
 function getDailyForecast(periods, timezone) {
   const days = new Map();
 
@@ -462,6 +469,9 @@ export default function App() {
   const windUnit = isMetric ? 'km/h' : 'mph';
   const visibility = (meters) => (isMetric ? meters / 1000 : meters / 1609.344).toFixed(1);
   const visibilityUnit = isMetric ? 'km' : 'mi';
+  const nextSolarEvent = weather && isDay
+    ? { label: 'Sunset in', seconds: weather.sys.sunset - weather.dt }
+    : { label: 'Sunrise in', seconds: (weather.dt < weather.sys.sunrise ? weather.sys.sunrise : weather.sys.sunrise + 86400) - weather.dt };
   const currentTime = weather && formatLocalTime(
     weather.dt,
     weather.timezone,
@@ -767,7 +777,10 @@ export default function App() {
                         <Typography fontWeight={800} variant="h6">{formatLocalTime(weather.sys.sunrise, weather.timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
                       </Box>
                     </Stack>
-                    <Box sx={{ borderColor: 'rgba(255, 255, 255, 0.18)', borderTop: 1, flexGrow: 1, maxWidth: 100 }} />
+                    <Box sx={{ flexGrow: 1, minWidth: 72, textAlign: 'center' }}>
+                      <Typography color="text.secondary" variant="caption">{nextSolarEvent.label}</Typography>
+                      <Typography fontWeight={700} variant="body2">{formatDuration(nextSolarEvent.seconds)}</Typography>
+                    </Box>
                     <Stack alignItems="center" direction="row" spacing={1.25}>
                       <Box textAlign="right">
                         <Typography color="text.secondary" variant="body2">Sunset</Typography>
