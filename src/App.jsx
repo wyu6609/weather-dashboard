@@ -3,6 +3,7 @@ import AirIcon from '@mui/icons-material/Air';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import CompressIcon from '@mui/icons-material/Compress';
 import ExploreIcon from '@mui/icons-material/Explore';
+import HistoryIcon from '@mui/icons-material/History';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import OpacityIcon from '@mui/icons-material/Opacity';
@@ -14,6 +15,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Container,
   Divider,
@@ -26,6 +28,7 @@ import {
 } from '@mui/material';
 
 const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+const RECENT_LOCATIONS_KEY = 'weatherly-recent-locations';
 
 const weatherThemes = {
   Clear: ['#2873a6', '#123c65', '#071526'],
@@ -168,6 +171,9 @@ export default function App() {
   const [weather, setWeather] = useState(null);
   const [airQuality, setAirQuality] = useState(null);
   const [airQualityStatus, setAirQualityStatus] = useState('idle');
+  const [forecast, setForecast] = useState([]);
+  const [forecastStatus, setForecastStatus] = useState('idle');
+  const [recentLocations, setRecentLocations] = useState([]);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
 
@@ -192,6 +198,35 @@ export default function App() {
     }
   };
 
+  const fetchForecast = async ({ lat, lon }) => {
+    setForecastStatus('loading');
+
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=imperial&appid=${API_KEY}`,
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.list?.length) {
+        throw new Error(data.message || 'Forecast data is unavailable for this location.');
+      }
+
+      setForecast(data.list.slice(0, 5));
+      setForecastStatus('success');
+    } catch {
+      setForecast([]);
+      setForecastStatus('error');
+    }
+  };
+
+  const saveRecentLocation = (location) => {
+    setRecentLocations((previous) => {
+      const next = [location, ...previous.filter((item) => item !== location)].slice(0, 4);
+      localStorage.setItem(RECENT_LOCATIONS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
   const fetchWeather = async (query) => {
     if (!query) {
       setError('Enter a city to see its weather.');
@@ -208,6 +243,8 @@ export default function App() {
     setError('');
     setAirQuality(null);
     setAirQualityStatus('idle');
+    setForecast([]);
+    setForecastStatus('idle');
 
     try {
       const response = await fetch(
@@ -222,6 +259,8 @@ export default function App() {
       setWeather(data);
       setStatus('success');
       fetchAirQuality(data.coord);
+      fetchForecast(data.coord);
+      saveRecentLocation(`${data.name}, ${data.sys.country}`);
     } catch (requestError) {
       setStatus('error');
       setError(requestError.message || 'Weather data could not be loaded.');
@@ -229,6 +268,14 @@ export default function App() {
   };
 
   useEffect(() => {
+    try {
+      const savedLocations = JSON.parse(localStorage.getItem(RECENT_LOCATIONS_KEY) || '[]');
+      if (Array.isArray(savedLocations)) {
+        setRecentLocations(savedLocations.filter((location) => typeof location === 'string'));
+      }
+    } catch {
+      localStorage.removeItem(RECENT_LOCATIONS_KEY);
+    }
     fetchWeather('q=New%20York');
   }, []);
 
@@ -265,6 +312,11 @@ export default function App() {
       },
       { timeout: 10000 },
     );
+  };
+
+  const selectRecentLocation = (location) => {
+    setSearchTerm(location);
+    fetchWeather(`q=${encodeURIComponent(location)}`);
   };
 
   const condition = weather?.weather?.[0];
@@ -345,6 +397,20 @@ export default function App() {
             <Typography color="rgba(255, 255, 255, 0.68)" id="search-hint" mt={0.75} variant="caption">
               Search any city, or enter a 5-digit U.S. ZIP code (for example, 10001).
             </Typography>
+            {recentLocations.length > 0 && (
+              <Stack alignItems="center" direction="row" flexWrap="wrap" gap={0.75} mt={1.25}>
+                <HistoryIcon fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.68)' }} />
+                {recentLocations.map((location) => (
+                  <Chip
+                    key={location}
+                    label={location}
+                    onClick={() => selectRecentLocation(location)}
+                    size="small"
+                    sx={{ bgcolor: 'rgba(255, 255, 255, 0.12)', color: 'common.white' }}
+                  />
+                ))}
+              </Stack>
+            )}
           </Box>
 
           {status === 'loading' && (
@@ -391,6 +457,32 @@ export default function App() {
                   <Typography color="text.secondary" mt={0.75}>
                     High {Math.round(weather.main.temp_max)}° · Low {Math.round(weather.main.temp_min)}°
                   </Typography>
+                </Box>
+
+                <Box>
+                  <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1.5}>
+                    <Typography fontWeight={700} variant="h6">Next 15 hours</Typography>
+                    {forecastStatus === 'error' && <Typography color="text.secondary" variant="caption">Forecast unavailable</Typography>}
+                  </Stack>
+                  {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
+                  {forecastStatus === 'success' && (
+                    <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', overflowX: 'auto' }}>
+                      {forecast.map((period) => (
+                        <Stack
+                          alignItems="center"
+                          key={period.dt}
+                          spacing={0.5}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, minWidth: 74, px: 1, py: 1.25 }}
+                        >
+                          <Typography color="text.secondary" variant="caption">
+                            {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
+                          </Typography>
+                          <Box alt={period.weather[0].description} component="img" src={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} sx={{ height: 42, width: 42 }} />
+                          <Typography fontWeight={700} variant="body2">{Math.round(period.main.temp)}°</Typography>
+                        </Stack>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
 
                 <Divider />
