@@ -28,7 +28,6 @@ import {
   Typography,
 } from '@mui/material';
 
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 const RECENT_LOCATIONS_KEY = 'weatherly-recent-locations';
 
 const weatherThemes = {
@@ -213,7 +212,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`,
+        `/.netlify/functions/weather?type=air&lat=${lat}&lon=${lon}`,
       );
       const data = await response.json();
 
@@ -234,7 +233,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=imperial&appid=${API_KEY}`,
+        `/.netlify/functions/weather?type=forecast&lat=${lat}&lon=${lon}`,
       );
       const data = await response.json();
 
@@ -264,12 +263,6 @@ export default function App() {
       return;
     }
 
-    if (!API_KEY) {
-      setStatus('error');
-      setError('The weather API key is not configured. Add it to .env.local.');
-      return;
-    }
-
     setStatus('loading');
     setError('');
     setAirQuality(null);
@@ -279,7 +272,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?${query}&units=imperial&appid=${API_KEY}`,
+        `/.netlify/functions/weather?type=current&${query}`,
       );
       const data = await response.json();
 
@@ -350,14 +343,6 @@ export default function App() {
     fetchWeather(`q=${encodeURIComponent(location)}`);
   };
 
-  const toggleDetails = (event) => {
-    if (event.target.closest('button, input, [role="button"]')) {
-      return;
-    }
-
-    setActiveSection('details');
-  };
-
   const condition = weather?.weather?.[0];
   const themeColors = weatherThemes[condition?.main] || weatherThemes.Atmosphere;
   const isDay = weather && weather.dt >= weather.sys.sunrise && weather.dt < weather.sys.sunset;
@@ -399,7 +384,6 @@ export default function App() {
           '94%, 95%': { opacity: 0.8 },
         },
       }}
-      onClick={toggleDetails}
     >
       <WeatherBackdrop condition={condition} isDay={isDay} />
       <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
@@ -669,9 +653,6 @@ export default function App() {
                     </Box>
                   </Box>
                 )}
-                <Typography align="center" color="text.secondary" variant="caption">
-                  Click the dashboard background to open expanded details.
-                </Typography>
               </Stack>
             </Paper>
           )}
