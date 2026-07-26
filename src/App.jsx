@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import OpacityIcon from '@mui/icons-material/Opacity';
