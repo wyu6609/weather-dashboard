@@ -54,6 +54,107 @@ function WeatherMetric({ icon, label, value }) {
   );
 }
 
+function WeatherBackdrop({ condition, isDay }) {
+  const conditionCode = condition?.id || 800;
+  const isStorm = conditionCode >= 200 && conditionCode < 300;
+  const isRainy = conditionCode >= 300 && conditionCode < 600;
+  const isSnowy = conditionCode >= 600 && conditionCode < 700;
+  const isCloudy = conditionCode > 800 || isRainy || isSnowy;
+
+  return (
+    <Box aria-hidden="true" sx={{ inset: 0, overflow: 'hidden', pointerEvents: 'none', position: 'absolute' }}>
+      {(isDay || !condition) && (
+        <Box
+          sx={{
+            animation: 'weatherGlow 7s ease-in-out infinite alternate',
+            background: 'radial-gradient(circle, rgba(255, 232, 153, 0.92) 0%, rgba(255, 193, 7, 0.45) 27%, transparent 68%)',
+            borderRadius: '50%',
+            height: { xs: 180, sm: 300 },
+            position: 'absolute',
+            right: { xs: '-8%', sm: '8%' },
+            top: { xs: '-4%', sm: '-8%' },
+            width: { xs: 180, sm: 300 },
+          }}
+        />
+      )}
+      {!isDay && condition && (
+        <Box
+          sx={{
+            background: 'radial-gradient(circle at 35% 30%, #f8fafc 0 20%, #b9c4d7 22% 26%, transparent 28%)',
+            borderRadius: '50%',
+            boxShadow: '0 0 65px rgba(226, 232, 240, 0.38)',
+            height: { xs: 120, sm: 180 },
+            position: 'absolute',
+            right: { xs: '4%', sm: '12%' },
+            top: { xs: '2%', sm: '6%' },
+            width: { xs: 120, sm: 180 },
+          }}
+        />
+      )}
+      {isCloudy && [0, 1, 2].map((cloud) => (
+        <Box
+          key={cloud}
+          sx={{
+            animation: `cloudDrift ${18 + cloud * 7}s linear infinite`,
+            animationDelay: `${-cloud * 6}s`,
+            background: 'rgba(222, 235, 245, 0.16)',
+            borderRadius: 12,
+            boxShadow: '35px 4px 0 10px rgba(222, 235, 245, 0.13), 76px 0 0 2px rgba(222, 235, 245, 0.11)',
+            height: 28 + cloud * 8,
+            left: `${cloud * 32 - 22}%`,
+            position: 'absolute',
+            top: `${12 + cloud * 17}%`,
+            width: 82 + cloud * 25,
+          }}
+        />
+      ))}
+      {isRainy && Array.from({ length: 20 }, (_, drop) => (
+        <Box
+          key={drop}
+          sx={{
+            animation: `rainFall ${0.65 + (drop % 4) * 0.14}s linear infinite`,
+            animationDelay: `${-(drop % 7) * 0.18}s`,
+            background: 'rgba(186, 230, 253, 0.54)',
+            borderRadius: 2,
+            height: 18,
+            left: `${(drop * 19) % 105}%`,
+            position: 'absolute',
+            top: `${18 + (drop % 5) * 9}%`,
+            transform: 'rotate(16deg)',
+            width: 2,
+          }}
+        />
+      ))}
+      {isSnowy && Array.from({ length: 18 }, (_, flake) => (
+        <Box
+          key={flake}
+          sx={{
+            animation: `snowFall ${2.8 + (flake % 4) * 0.5}s linear infinite`,
+            animationDelay: `${-(flake % 6) * 0.5}s`,
+            background: 'rgba(255, 255, 255, 0.72)',
+            borderRadius: '50%',
+            height: 4 + (flake % 3),
+            left: `${(flake * 23) % 104}%`,
+            position: 'absolute',
+            top: `${8 + (flake % 7) * 11}%`,
+            width: 4 + (flake % 3),
+          }}
+        />
+      ))}
+      {isStorm && (
+        <Box
+          sx={{
+            animation: 'lightningFlash 6s step-end infinite',
+            background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.75) 41% 43%, transparent 44%)',
+            inset: 0,
+            position: 'absolute',
+          }}
+        />
+      )}
+    </Box>
+  );
+}
+
 export default function App() {
   const [city, setCity] = useState('New York');
   const [weather, setWeather] = useState(null);
@@ -122,6 +223,7 @@ export default function App() {
 
   const condition = weather?.weather?.[0];
   const themeColors = weatherThemes[condition?.main] || weatherThemes.Atmosphere;
+  const isDay = weather && weather.dt >= weather.sys.sunrise && weather.dt < weather.sys.sunset;
   const currentTime = weather && formatLocalTime(
     weather.dt,
     weather.timezone,
@@ -133,11 +235,34 @@ export default function App() {
       sx={{
         background: `radial-gradient(circle at 15% 0%, ${themeColors[0]} 0%, ${themeColors[1]} 43%, ${themeColors[2]} 100%)`,
         minHeight: '100vh',
+        overflow: 'hidden',
         py: { xs: 3, sm: 7 },
+        position: 'relative',
         transition: 'background 500ms ease',
+        '@keyframes weatherGlow': {
+          from: { opacity: 0.65, transform: 'scale(0.92)' },
+          to: { opacity: 1, transform: 'scale(1.08)' },
+        },
+        '@keyframes cloudDrift': {
+          from: { transform: 'translateX(-20vw)' },
+          to: { transform: 'translateX(120vw)' },
+        },
+        '@keyframes rainFall': {
+          from: { opacity: 0, transform: 'translate(0, -15px) rotate(16deg)' },
+          to: { opacity: 0.7, transform: 'translate(-28px, 180px) rotate(16deg)' },
+        },
+        '@keyframes snowFall': {
+          from: { opacity: 0, transform: 'translate(0, -15px)' },
+          to: { opacity: 0.85, transform: 'translate(35px, 230px)' },
+        },
+        '@keyframes lightningFlash': {
+          '0%, 93%, 96%, 100%': { opacity: 0 },
+          '94%, 95%': { opacity: 0.8 },
+        },
       }}
     >
-      <Container maxWidth="md">
+      <WeatherBackdrop condition={condition} isDay={isDay} />
+      <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
         <Stack spacing={3.5}>
           <Stack alignItems="center" direction="row" justifyContent="space-between">
             <Stack alignItems="center" direction="row" spacing={1}>
