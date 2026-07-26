@@ -469,9 +469,11 @@ export default function App() {
   const windUnit = isMetric ? 'km/h' : 'mph';
   const visibility = (meters) => (isMetric ? meters / 1000 : meters / 1609.344).toFixed(1);
   const visibilityUnit = isMetric ? 'km' : 'mi';
-  const nextSolarEvent = weather && isDay
-    ? { label: 'Sunset in', seconds: weather.sys.sunset - weather.dt }
-    : { label: 'Sunrise in', seconds: (weather.dt < weather.sys.sunrise ? weather.sys.sunrise : weather.sys.sunrise + 86400) - weather.dt };
+  const nextSolarEvent = weather
+    ? isDay
+      ? { label: 'Sunset in', seconds: weather.sys.sunset - weather.dt }
+      : { label: 'Sunrise in', seconds: (weather.dt < weather.sys.sunrise ? weather.sys.sunrise : weather.sys.sunrise + 86400) - weather.dt }
+    : null;
   const currentTime = weather && formatLocalTime(
     weather.dt,
     weather.timezone,
