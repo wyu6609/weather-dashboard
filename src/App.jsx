@@ -156,7 +156,7 @@ function WeatherBackdrop({ condition, isDay }) {
 }
 
 export default function App() {
-  const [city, setCity] = useState('New York');
+  const [searchTerm, setSearchTerm] = useState('New York');
   const [weather, setWeather] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
@@ -200,7 +200,19 @@ export default function App() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    fetchWeather(`q=${encodeURIComponent(city.trim())}`);
+    const location = searchTerm.trim();
+
+    if (!location) {
+      fetchWeather('');
+      return;
+    }
+
+    if (/^\d{5}$/.test(location)) {
+      fetchWeather(`zip=${encodeURIComponent(`${location},us`)}`);
+      return;
+    }
+
+    fetchWeather(`q=${encodeURIComponent(location)}`);
   };
 
   const useCurrentLocation = () => {
@@ -279,21 +291,25 @@ export default function App() {
           <Box component="form" noValidate onSubmit={handleSubmit}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <TextField
-                aria-label="City"
+                aria-describedby="search-hint"
+                aria-label="City or U.S. ZIP code"
                 fullWidth
-                onChange={(event) => setCity(event.target.value)}
-                placeholder="Search by city"
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search city or ZIP code"
                 slotProps={{
                   input: {
                     startAdornment: <InputAdornment position="start"><LocationOnIcon /></InputAdornment>,
                   },
                 }}
-                value={city}
+                value={searchTerm}
               />
               <Button disabled={status === 'loading'} startIcon={<SearchIcon />} sx={{ minWidth: 112, py: 1.5 }} type="submit" variant="contained">
                 Search
               </Button>
             </Stack>
+            <Typography color="rgba(255, 255, 255, 0.68)" id="search-hint" mt={0.75} variant="caption">
+              Search any city, or enter a 5-digit U.S. ZIP code (for example, 10001).
+            </Typography>
           </Box>
 
           {status === 'loading' && (
