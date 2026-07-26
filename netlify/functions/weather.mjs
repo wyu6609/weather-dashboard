@@ -20,12 +20,13 @@ export default async (request) => {
 
   const requestUrl = new URL(request.url);
   const type = requestUrl.searchParams.get('type');
+  const units = requestUrl.searchParams.get('units') === 'metric' ? 'metric' : 'imperial';
   const parameters = new URLSearchParams({ appid: apiKey });
   let endpoint;
 
   if (type === 'current') {
     endpoint = 'weather';
-    parameters.set('units', 'imperial');
+    parameters.set('units', units);
     const query = requestUrl.searchParams.get('q');
     const zip = requestUrl.searchParams.get('zip');
     const lat = requestUrl.searchParams.get('lat');
@@ -54,7 +55,7 @@ export default async (request) => {
     parameters.set('lon', lon);
 
     if (type === 'forecast') {
-      parameters.set('units', 'imperial');
+      parameters.set('units', units);
     }
   } else {
     return jsonResponse({ message: 'Unsupported weather request.' }, 400);

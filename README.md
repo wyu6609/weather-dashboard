@@ -13,6 +13,7 @@ https://weatherly-wyu.netlify.app
 
 - Search by city or 5-digit U.S. ZIP code
 - Use the device's current location
+- Switch between Fahrenheit and Celsius; wind and visibility follow the selected system
 - View current conditions, temperature range, wind, humidity, visibility, and
   pressure
 - Review air quality, sunrise, and sunset

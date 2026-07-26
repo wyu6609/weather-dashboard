@@ -27,10 +27,13 @@ import {
   Tab,
   TextField,
   Tabs,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 
 const RECENT_LOCATIONS_KEY = 'weatherly-recent-locations';
+const UNIT_SYSTEM_KEY = 'weatherly-unit-system';
 
 const weatherThemes = {
   Clear: ['#2873a6', '#123c65', '#071526'],
@@ -237,6 +240,9 @@ function WeatherBackdrop({ condition, isDay }) {
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('New York');
+  const [unitSystem, setUnitSystem] = useState(
+    () => localStorage.getItem(UNIT_SYSTEM_KEY) || 'imperial',
+  );
   const [weather, setWeather] = useState(null);
   const [airQuality, setAirQuality] = useState(null);
   const [airQualityStatus, setAirQualityStatus] = useState('idle');
@@ -274,7 +280,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `/.netlify/functions/weather?type=forecast&lat=${lat}&lon=${lon}`,
+        `/.netlify/functions/weather?type=forecast&lat=${lat}&lon=${lon}&units=${unitSystem}`,
       );
       const data = await response.json();
 
@@ -313,7 +319,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `/.netlify/functions/weather?type=current&${query}`,
+        `/.netlify/functions/weather?type=current&units=${unitSystem}&${query}`,
       );
       const data = await response.json();
 
@@ -342,7 +348,11 @@ export default function App() {
       localStorage.removeItem(RECENT_LOCATIONS_KEY);
     }
     fetchWeather('q=New%20York');
-  }, []);
+  }, [unitSystem]);
+
+  useEffect(() => {
+    localStorage.setItem(UNIT_SYSTEM_KEY, unitSystem);
+  }, [unitSystem]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -389,6 +399,12 @@ export default function App() {
   const isDay = weather && weather.dt >= weather.sys.sunrise && weather.dt < weather.sys.sunset;
   const airQualityLevel = airQuality && airQualityLevels[airQuality.main.aqi];
   const dailyForecast = weather ? getDailyForecast(forecast, weather.timezone) : [];
+  const isMetric = unitSystem === 'metric';
+  const temperatureUnit = isMetric ? 'C' : 'F';
+  const windSpeed = (speed) => Math.round(isMetric ? speed * 3.6 : speed);
+  const windUnit = isMetric ? 'km/h' : 'mph';
+  const visibility = (meters) => (isMetric ? meters / 1000 : meters / 1609.344).toFixed(1);
+  const visibilityUnit = isMetric ? 'km' : 'mi';
   const currentTime = weather && formatLocalTime(
     weather.dt,
     weather.timezone,
@@ -437,9 +453,25 @@ export default function App() {
               </Box>
               <Typography component="h1" fontWeight={800} letterSpacing="-0.04em" variant="h5">Weatherly</Typography>
             </Stack>
-            <IconButton aria-label="Use my location" color="primary" onClick={useCurrentLocation} sx={{ bgcolor: 'rgba(255,255,255,0.08)' }}>
-              <MyLocationIcon />
-            </IconButton>
+            <Stack alignItems="center" direction="row" spacing={1}>
+              <ToggleButtonGroup
+                aria-label="Temperature unit"
+                exclusive
+                onChange={(_, nextUnitSystem) => {
+                  if (nextUnitSystem) {
+                    setUnitSystem(nextUnitSystem);
+                  }
+                }}
+                size="small"
+                value={unitSystem}
+              >
+                <ToggleButton value="imperial">°F</ToggleButton>
+                <ToggleButton value="metric">°C</ToggleButton>
+              </ToggleButtonGroup>
+              <IconButton aria-label="Use my location" color="primary" onClick={useCurrentLocation} sx={{ bgcolor: 'rgba(255,255,255,0.08)' }}>
+                <MyLocationIcon />
+              </IconButton>
+            </Stack>
           </Stack>
 
           <Box component="form" noValidate onSubmit={handleSubmit}>
@@ -515,7 +547,7 @@ export default function App() {
                     <Box alt={condition.description} component="img" src={`https://openweathermap.org/img/wn/${condition.icon}@2x.png`} sx={{ height: 70, width: 70 }} />
                     <Box>
                       <Typography fontWeight={800} letterSpacing="-0.08em" lineHeight={0.85} variant="h2">{Math.round(weather.main.temp)}°</Typography>
-                      <Typography color="text.secondary" variant="body2">Feels like {Math.round(weather.main.feels_like)}°</Typography>
+                      <Typography color="text.secondary" variant="body2">Feels like {Math.round(weather.main.feels_like)}°{temperatureUnit}</Typography>
                     </Box>
                   </Stack>
                 </Stack>
@@ -618,10 +650,10 @@ export default function App() {
                 {activeSection === 'overview' && (
                   <Stack spacing={{ xs: 2, sm: 3 }} sx={{ mt: -2 }}>
                 <Box sx={{ display: 'grid', gap: { xs: 3, sm: 4 }, gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' } }}>
-                  <WeatherMetric icon={<ThermostatIcon />} label="Feels like" value={`${Math.round(weather.main.feels_like)}°F`} />
+                  <WeatherMetric icon={<ThermostatIcon />} label="Feels like" value={`${Math.round(weather.main.feels_like)}°${temperatureUnit}`} />
                   <WeatherMetric icon={<OpacityIcon />} label="Humidity" value={`${weather.main.humidity}%`} />
-                  <WeatherMetric icon={<AirIcon />} label="Wind" value={`${Math.round(weather.wind.speed)} mph`} />
-                  <WeatherMetric icon={<VisibilityIcon />} label="Visibility" value={`${(weather.visibility / 1609.344).toFixed(1)} mi`} />
+                  <WeatherMetric icon={<AirIcon />} label="Wind" value={`${windSpeed(weather.wind.speed)} ${windUnit}`} />
+                  <WeatherMetric icon={<VisibilityIcon />} label="Visibility" value={`${visibility(weather.visibility)} ${visibilityUnit}`} />
                   <WeatherMetric icon={<CompressIcon />} label="Pressure" value={`${weather.main.pressure} hPa`} />
                   <WeatherMetric icon={<ExploreIcon />} label="Cloud cover" value={`${weather.clouds.all}%`} />
                 </Box>
@@ -705,7 +737,7 @@ export default function App() {
                     <Typography fontWeight={700} variant="subtitle2">Expanded weather details</Typography>
                     <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, mt: 1.5 }}>
                       <Box><Typography color="text.secondary" variant="caption">Wind direction</Typography><Typography fontWeight={700}>{weather.wind.deg ?? '—'}°</Typography></Box>
-                      <Box><Typography color="text.secondary" variant="caption">Wind gust</Typography><Typography fontWeight={700}>{weather.wind.gust ? `${Math.round(weather.wind.gust)} mph` : '—'}</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">Wind gust</Typography><Typography fontWeight={700}>{weather.wind.gust ? `${windSpeed(weather.wind.gust)} ${windUnit}` : '—'}</Typography></Box>
                       <Box><Typography color="text.secondary" variant="caption">Sea level</Typography><Typography fontWeight={700}>{weather.main.sea_level ? `${weather.main.sea_level} hPa` : '—'}</Typography></Box>
                       <Box><Typography color="text.secondary" variant="caption">Coordinates</Typography><Typography fontWeight={700}>{weather.coord.lat.toFixed(2)}°, {weather.coord.lon.toFixed(2)}°</Typography></Box>
                     </Box>
