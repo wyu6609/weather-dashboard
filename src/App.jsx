@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CompressIcon from '@mui/icons-material/Compress';
 import ExploreIcon from '@mui/icons-material/Explore';
 import HistoryIcon from '@mui/icons-material/History';
@@ -90,6 +92,46 @@ function WeatherMetric({ icon, label, value }) {
         <Typography fontWeight={700} variant="body1">{value}</Typography>
       </Box>
     </Stack>
+  );
+}
+
+function ForecastRail({ ariaLabel, children }) {
+  const railRef = useRef(null);
+
+  const scroll = (direction) => {
+    railRef.current?.scrollBy({
+      behavior: 'smooth',
+      left: direction * railRef.current.clientWidth * 0.8,
+    });
+  };
+
+  return (
+    <Box>
+      <Stack alignItems="center" direction="row" justifyContent="flex-end" mb={0.75} spacing={0.25}>
+        <Typography color="text.secondary" mr="auto" variant="caption">Swipe to explore</Typography>
+        <IconButton aria-label={`Show previous ${ariaLabel}`} onClick={() => scroll(-1)} size="small">
+          <ChevronLeftIcon fontSize="small" />
+        </IconButton>
+        <IconButton aria-label={`Show more ${ariaLabel}`} onClick={() => scroll(1)} size="small">
+          <ChevronRightIcon fontSize="small" />
+        </IconButton>
+      </Stack>
+      <Box
+        aria-label={ariaLabel}
+        ref={railRef}
+        sx={{
+          display: 'flex',
+          gap: { xs: 1.5, sm: 2 },
+          overflowX: 'auto',
+          pb: 1,
+          scrollbarWidth: 'thin',
+          scrollSnapType: 'x mandatory',
+          touchAction: 'pan-x',
+        }}
+      >
+        {children}
+      </Box>
+    </Box>
   );
 }
 
@@ -532,8 +574,8 @@ export default function App() {
                   </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
-                    <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 }, overflowX: 'auto', pb: 1, scrollbarWidth: 'thin', scrollSnapType: 'x mandatory' }}>
-                      {forecast.slice(0, 5).map((period) => (
+                    <ForecastRail ariaLabel="hourly forecast">
+                      {forecast.slice(0, 12).map((period) => (
                         <Stack
                           alignItems="center"
                           key={period.dt}
@@ -547,14 +589,14 @@ export default function App() {
                           <Typography fontWeight={700} variant="body2">{Math.round(period.main.temp)}°</Typography>
                         </Stack>
                       ))}
-                    </Box>
+                    </ForecastRail>
                   )}
                 </Box>
 
                 {forecastStatus === 'success' && forecastMode === 'daily' && (
                   <Box>
                     <Typography color="text.secondary" mb={1.5} variant="body2">Five-day outlook</Typography>
-                    <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 }, overflowX: 'auto', pb: 1, scrollbarWidth: 'thin', scrollSnapType: 'x mandatory' }}>
+                    <ForecastRail ariaLabel="five-day forecast">
                       {dailyForecast.map((day) => (
                         <Stack
                           alignItems="center"
@@ -568,7 +610,7 @@ export default function App() {
                           <Typography color="text.secondary" variant="caption">{Math.round(day.low)}°</Typography>
                         </Stack>
                       ))}
-                    </Box>
+                    </ForecastRail>
                   </Box>
                 )}
                   </>
