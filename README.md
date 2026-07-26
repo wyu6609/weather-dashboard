@@ -19,6 +19,7 @@ https://weatherly-wyu.netlify.app
 - Review air quality, sunrise, and sunset
 - Browse hourly and five-day forecasts
 - Review a 24-hour precipitation chart
+- See expected rainfall and daylight progression
 - Revisit recent searches
 - Enjoy weather-aware animated backgrounds and a mobile-friendly layout
 

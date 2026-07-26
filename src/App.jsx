@@ -22,6 +22,7 @@ import {
   Container,
   IconButton,
   InputAdornment,
+  LinearProgress,
   Paper,
   Stack,
   Tab,
@@ -139,6 +140,8 @@ function ForecastRail({ ariaLabel, children }) {
 
 function PrecipitationChart({ periods, timezone }) {
   const data = periods.slice(0, 8);
+  const totalRainfall = data.reduce((total, period) => total + (period.rain?.['3h'] || 0), 0);
+  const highestChance = Math.max(...data.map((period) => Math.round((period.pop || 0) * 100)));
   const chartWidth = 375;
   const chartHeight = 165;
   const chartTop = 22;
@@ -180,6 +183,45 @@ function PrecipitationChart({ periods, timezone }) {
           );
         })}
       </Box>
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" mt={1} spacing={0.5}>
+        <Typography color="text.secondary" variant="caption">
+          {totalRainfall > 0 ? `${totalRainfall.toFixed(1)} mm expected over 24 hours` : 'No measurable rain expected'}
+        </Typography>
+        <Typography color="text.secondary" variant="caption">Peak chance: {highestChance}%</Typography>
+      </Stack>
+    </Box>
+  );
+}
+
+function SunProgress({ currentTime, sunrise, sunset, timezone }) {
+  const dayLength = sunset - sunrise;
+  const progress = Math.min(100, Math.max(0, ((currentTime - sunrise) / dayLength) * 100));
+  const isDaytime = currentTime >= sunrise && currentTime < sunset;
+
+  return (
+    <Box sx={{ bgcolor: 'rgba(250, 204, 21, 0.08)', border: '1px solid rgba(250, 204, 21, 0.16)', borderRadius: 3, px: { xs: 2, sm: 3 }, py: 2.5 }}>
+      <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1.5}>
+        <Typography fontWeight={700}>Daylight progression</Typography>
+        <Typography color="text.secondary" variant="caption">{isDaytime ? `${Math.round(progress)}% through daylight` : 'Sun is down'}</Typography>
+      </Stack>
+      <LinearProgress
+        aria-label="Daylight progression"
+        sx={{
+          bgcolor: 'rgba(255,255,255,0.12)',
+          borderRadius: 4,
+          height: 10,
+          '& .MuiLinearProgress-bar': {
+            background: 'linear-gradient(90deg, #facc15, #fb923c)',
+            borderRadius: 4,
+          },
+        }}
+        value={progress}
+        variant="determinate"
+      />
+      <Stack direction="row" justifyContent="space-between" mt={1.25}>
+        <Typography color="text.secondary" variant="caption">Sunrise {formatLocalTime(sunrise, timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
+        <Typography color="text.secondary" variant="caption">Sunset {formatLocalTime(sunset, timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
+      </Stack>
     </Box>
   );
 }
@@ -786,6 +828,13 @@ export default function App() {
                     </Stack>
                   </Stack>
                 </Box>
+
+                <SunProgress
+                  currentTime={weather.dt}
+                  sunrise={weather.sys.sunrise}
+                  sunset={weather.sys.sunset}
+                  timezone={weather.timezone}
+                />
 
                   </Stack>
                 )}
