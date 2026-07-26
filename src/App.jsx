@@ -660,9 +660,9 @@ export default function App() {
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
                     <Stack spacing={2.5}>
                       <Box>
-                        <Typography color="text.secondary" mb={1} variant="body2">Next 15 hours</Typography>
-                        <Box sx={{ display: 'grid', gap: { xs: 0.75, sm: 1.25 }, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
-                          {forecast.slice(0, 5).map((period) => (
+                        <Typography color="text.secondary" mb={1} variant="body2">Next 24 hours</Typography>
+                        <Box sx={{ display: 'grid', gap: { xs: 0.75, sm: 1.25 }, gridTemplateColumns: { xs: 'repeat(4, minmax(0, 1fr))', md: 'repeat(8, minmax(0, 1fr))' } }}>
+                          {forecast.slice(0, 8).map((period) => (
                             <Stack
                               alignItems="center"
                               key={period.dt}
