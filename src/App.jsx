@@ -558,7 +558,7 @@ export default function App() {
                 )}
 
                 {activeSection === 'overview' && (
-                  <Box sx={{ mt: -2 }}>
+                  <Stack spacing={{ xs: 2, sm: 3 }} sx={{ mt: -2 }}>
                 <Box sx={{ display: 'grid', gap: { xs: 3, sm: 4 }, gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' } }}>
                   <WeatherMetric icon={<ThermostatIcon />} label="Feels like" value={`${Math.round(weather.main.feels_like)}°F`} />
                   <WeatherMetric icon={<OpacityIcon />} label="Humidity" value={`${weather.main.humidity}%`} />
@@ -639,7 +639,7 @@ export default function App() {
                   </Stack>
                 </Box>
 
-                  </Box>
+                  </Stack>
                 )}
 
                 {activeSection === 'details' && (
