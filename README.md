@@ -3,7 +3,7 @@
 Weatherly is a responsive weather dashboard for checking current conditions,
 air quality, and upcoming forecasts by city, ZIP code, or device location.
 
-**Live site:** https://weatherly-dashboard-wyu6609.netlify.app
+**Live site:** https://weatherly-wyu.netlify.app
 
 ![Weatherly dashboard overview](assets/weatherly-dashboard.webp)
 

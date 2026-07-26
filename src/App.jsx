@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import CompressIcon from '@mui/icons-material/Compress';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ExploreIcon from '@mui/icons-material/Explore';
 import HistoryIcon from '@mui/icons-material/History';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -9,11 +10,14 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import OpacityIcon from '@mui/icons-material/Opacity';
 import SearchIcon from '@mui/icons-material/Search';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
+import TuneIcon from '@mui/icons-material/Tune';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import {
   Alert,
   Box,
+  BottomNavigation,
+  BottomNavigationAction,
   Button,
   Chip,
   CircularProgress,
@@ -360,7 +364,8 @@ export default function App() {
         background: `radial-gradient(circle at 15% 0%, ${themeColors[0]} 0%, ${themeColors[1]} 43%, ${themeColors[2]} 100%)`,
         minHeight: '100vh',
         overflow: 'hidden',
-        py: { xs: 3, sm: 7 },
+        pb: { xs: 11, sm: 7 },
+        pt: { xs: 3, sm: 7 },
         position: 'relative',
         transition: 'background 500ms ease',
         '@keyframes weatherGlow': {
@@ -450,6 +455,7 @@ export default function App() {
           {status === 'error' && <Alert severity="error">{error}</Alert>}
 
           {status === 'success' && weather && (
+            <>
             <Paper
               elevation={12}
               sx={{
@@ -493,6 +499,7 @@ export default function App() {
                   sx={{
                     '& .MuiTab-root': { minWidth: 88 },
                     borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                    display: { xs: 'none', sm: 'flex' },
                   }}
                   value={activeSection}
                   variant="scrollable"
@@ -655,6 +662,34 @@ export default function App() {
                 )}
               </Stack>
             </Paper>
+            <Paper
+              elevation={16}
+              sx={{
+                background: 'rgba(10, 25, 43, 0.94)',
+                backdropFilter: 'blur(18px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: 3,
+                bottom: 12,
+                display: { xs: 'block', sm: 'none' },
+                left: 12,
+                overflow: 'hidden',
+                position: 'fixed',
+                right: 12,
+                zIndex: 20,
+              }}
+            >
+              <BottomNavigation
+                onChange={(_, section) => setActiveSection(section)}
+                showLabels
+                sx={{ bgcolor: 'transparent' }}
+                value={activeSection}
+              >
+                <BottomNavigationAction icon={<DashboardOutlinedIcon />} label="Overview" value="overview" />
+                <BottomNavigationAction icon={<WbSunnyIcon />} label="Forecast" value="forecast" />
+                <BottomNavigationAction icon={<TuneIcon />} label="Details" value="details" />
+              </BottomNavigation>
+            </Paper>
+            </>
           )}
         </Stack>
       </Container>
