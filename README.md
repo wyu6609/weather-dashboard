@@ -3,9 +3,11 @@
 Weatherly is a responsive weather dashboard for checking current conditions,
 air quality, and upcoming forecasts by city, ZIP code, or device location.
 
-**Live site:** https://weatherly-wyu.netlify.app
-
 ![Weatherly dashboard overview](assets/weatherly-dashboard.webp)
+
+## Deployed website
+
+https://weatherly-wyu.netlify.app
 
 ## Features
 
@@ -38,15 +40,3 @@ npm run dev
 ```
 
 Open http://127.0.0.1:8888.
-
-## How it works
-
-| Layer | Responsibility |
-| --- | --- |
-| `src/` | React and Material UI dashboard |
-| `netlify/functions/weather.mjs` | Validates requests and proxies OpenWeather |
-| Netlify environment | Stores `OPENWEATHER_API_KEY` securely |
-| `netlify.toml` | Defines the Vite build, function directory, and local server |
-
-The API key is never bundled into the browser. The dashboard calls the Netlify
-Function, which securely requests data from OpenWeather.
