@@ -296,7 +296,7 @@ export default function App() {
   const [forecast, setForecast] = useState([]);
   const [forecastStatus, setForecastStatus] = useState('idle');
   const [recentLocations, setRecentLocations] = useState([]);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState('forecast');
   const [forecastMode, setForecastMode] = useState('daily');
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
