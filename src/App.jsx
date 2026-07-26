@@ -641,38 +641,48 @@ export default function App() {
 
                 {activeSection === 'forecast' && (
                   <>
-                <Box>
-                  <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1.5}>
+                <Stack spacing={2.5}>
+                  <Stack alignItems="center" direction="row" justifyContent="space-between">
                     <Typography fontWeight={700} variant="h6">Forecast</Typography>
-                    {forecastStatus === 'error' && <Typography color="text.secondary" variant="caption">Forecast unavailable</Typography>}
-                  </Stack>
-                  <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                    <Button onClick={() => setForecastMode('daily')} size="small" variant={forecastMode === 'daily' ? 'contained' : 'text'}>Week</Button>
-                    <Button onClick={() => setForecastMode('hourly')} size="small" variant={forecastMode === 'hourly' ? 'contained' : 'text'}>Hours</Button>
+                    {forecastStatus === 'error' ? (
+                      <Typography color="text.secondary" variant="caption">Forecast unavailable</Typography>
+                    ) : (
+                      <ToggleButtonGroup
+                        exclusive
+                        onChange={(_, mode) => mode && setForecastMode(mode)}
+                        size="small"
+                        value={forecastMode}
+                      >
+                        <ToggleButton value="hourly">Hourly</ToggleButton>
+                        <ToggleButton value="daily">5-Day</ToggleButton>
+                      </ToggleButtonGroup>
+                    )}
                   </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
-                    <PrecipitationChart periods={forecast} timezone={weather.timezone} />
+                    <Stack spacing={2.5}>
+                      <Box>
+                        <Typography color="text.secondary" mb={1} variant="body2">Next 36 hours</Typography>
+                        <ForecastRail ariaLabel="hourly forecast">
+                          {forecast.slice(0, 12).map((period) => (
+                            <Stack
+                              alignItems="center"
+                              key={period.dt}
+                              spacing={0.5}
+                              sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: { xs: '0 0 72px', sm: '0 0 86px' }, px: 0.75, py: 1.25, scrollSnapAlign: 'start' }}
+                            >
+                              <Typography color="text.secondary" variant="caption">
+                                {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
+                              </Typography>
+                              <Box alt={period.weather[0].description} component="img" src={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} sx={{ height: 42, width: 42 }} />
+                              <Typography fontWeight={700} variant="body2">{Math.round(period.main.temp)}°</Typography>
+                            </Stack>
+                          ))}
+                        </ForecastRail>
+                      </Box>
+                      <PrecipitationChart periods={forecast} timezone={weather.timezone} />
+                    </Stack>
                   )}
-                  {forecastStatus === 'success' && forecastMode === 'hourly' && (
-                    <ForecastRail ariaLabel="hourly forecast">
-                      {forecast.slice(0, 12).map((period) => (
-                        <Stack
-                          alignItems="center"
-                          key={period.dt}
-                          spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: { xs: '0 0 72px', sm: '0 0 86px' }, px: 0.75, py: 1.25, scrollSnapAlign: 'start' }}
-                        >
-                          <Typography color="text.secondary" variant="caption">
-                            {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
-                          </Typography>
-                          <Box alt={period.weather[0].description} component="img" src={`https://openweathermap.org/img/wn/${period.weather[0].icon}.png`} sx={{ height: 42, width: 42 }} />
-                          <Typography fontWeight={700} variant="body2">{Math.round(period.main.temp)}°</Typography>
-                        </Stack>
-                      ))}
-                    </ForecastRail>
-                  )}
-                </Box>
 
                 {forecastStatus === 'success' && forecastMode === 'daily' && (
                   <Box>
@@ -694,6 +704,7 @@ export default function App() {
                     </ForecastRail>
                   </Box>
                 )}
+                </Stack>
                   </>
                 )}
 
