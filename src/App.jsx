@@ -687,21 +687,21 @@ export default function App() {
                 {forecastStatus === 'success' && forecastMode === 'daily' && (
                   <Box>
                     <Typography color="text.secondary" mb={1.5} variant="body2">Five-day outlook</Typography>
-                    <ForecastRail ariaLabel="five-day forecast">
+                    <Box sx={{ display: 'grid', gap: { xs: 0.75, sm: 1.25 }, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
                       {dailyForecast.map((day) => (
                         <Stack
                           alignItems="center"
                           key={day.day}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, flex: { xs: '0 0 72px', sm: '0 0 86px' }, px: 0.75, py: 1.25, scrollSnapAlign: 'start' }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, minWidth: 0, px: { xs: 0.25, sm: 0.75 }, py: 1.25 }}
                         >
-                          <Typography fontWeight={700} variant="body2">{day.day}</Typography>
-                          <Box alt={day.condition.description} component="img" src={`https://openweathermap.org/img/wn/${day.condition.icon}.png`} sx={{ height: 40, width: 40 }} />
+                          <Typography fontWeight={700} noWrap variant="body2">{day.day}</Typography>
+                          <Box alt={day.condition.description} component="img" src={`https://openweathermap.org/img/wn/${day.condition.icon}.png`} sx={{ height: { xs: 34, sm: 40 }, width: { xs: 34, sm: 40 } }} />
                           <Typography fontWeight={700} variant="body2">{Math.round(day.high)}°</Typography>
                           <Typography color="text.secondary" variant="caption">{Math.round(day.low)}°</Typography>
                         </Stack>
                       ))}
-                    </ForecastRail>
+                    </Box>
                   </Box>
                 )}
                 </Stack>
