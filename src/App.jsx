@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import CompressIcon from '@mui/icons-material/Compress';
-import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ExploreIcon from '@mui/icons-material/Explore';
 import HistoryIcon from '@mui/icons-material/History';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -10,14 +9,11 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import OpacityIcon from '@mui/icons-material/Opacity';
 import SearchIcon from '@mui/icons-material/Search';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
-import TuneIcon from '@mui/icons-material/Tune';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import {
   Alert,
   Box,
-  BottomNavigation,
-  BottomNavigationAction,
   Button,
   Chip,
   CircularProgress,
@@ -364,7 +360,7 @@ export default function App() {
         background: `radial-gradient(circle at 15% 0%, ${themeColors[0]} 0%, ${themeColors[1]} 43%, ${themeColors[2]} 100%)`,
         minHeight: '100vh',
         overflow: 'hidden',
-        pb: { xs: 11, sm: 7 },
+        pb: { xs: 4, sm: 7 },
         pt: { xs: 3, sm: 7 },
         position: 'relative',
         transition: 'background 500ms ease',
@@ -508,6 +504,20 @@ export default function App() {
                   <Tab label="Forecast" value="forecast" />
                   <Tab label="Details" value="details" />
                 </Tabs>
+                <Stack direction="row" display={{ xs: 'flex', sm: 'none' }} spacing={0.75}>
+                  {['overview', 'forecast', 'details'].map((section) => (
+                    <Button
+                      fullWidth
+                      key={section}
+                      onClick={() => setActiveSection(section)}
+                      size="small"
+                      sx={{ minWidth: 0, px: 0.5 }}
+                      variant={activeSection === section ? 'contained' : 'outlined'}
+                    >
+                      {section}
+                    </Button>
+                  ))}
+                </Stack>
 
                 {activeSection === 'forecast' && (
                   <>
@@ -661,33 +671,6 @@ export default function App() {
                   </Box>
                 )}
               </Stack>
-            </Paper>
-            <Paper
-              elevation={16}
-              sx={{
-                background: 'rgba(10, 25, 43, 0.94)',
-                backdropFilter: 'blur(18px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: 3,
-                bottom: 12,
-                display: { xs: 'block', sm: 'none' },
-                left: 12,
-                overflow: 'hidden',
-                position: 'fixed',
-                right: 12,
-                zIndex: 20,
-              }}
-            >
-              <BottomNavigation
-                onChange={(_, section) => setActiveSection(section)}
-                showLabels
-                sx={{ bgcolor: 'transparent' }}
-                value={activeSection}
-              >
-                <BottomNavigationAction icon={<DashboardOutlinedIcon />} label="Overview" value="overview" />
-                <BottomNavigationAction icon={<WbSunnyIcon />} label="Forecast" value="forecast" />
-                <BottomNavigationAction icon={<TuneIcon />} label="Details" value="details" />
-              </BottomNavigation>
             </Paper>
             </>
           )}
