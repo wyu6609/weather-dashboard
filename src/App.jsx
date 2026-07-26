@@ -20,7 +20,6 @@ import {
   Container,
   IconButton,
   InputAdornment,
-  LinearProgress,
   Paper,
   Stack,
   Tab,
@@ -170,35 +169,27 @@ function HourlyForecastChart({ periods, temperatureUnit, timezone }) {
   );
 }
 
-function SunProgress({ currentTime, sunrise, sunset, timezone }) {
+function SunArc({ currentTime, sunrise, sunset }) {
   const dayLength = sunset - sunrise;
-  const progress = Math.min(100, Math.max(0, ((currentTime - sunrise) / dayLength) * 100));
+  const progress = Math.min(1, Math.max(0, (currentTime - sunrise) / dayLength));
   const isDaytime = currentTime >= sunrise && currentTime < sunset;
+  const visualProgress = isDaytime ? progress : currentTime < sunrise ? 0 : 1;
+  const sunHeight = Math.round(Math.sin(progress * Math.PI) * 100);
+  const sunX = 28 + visualProgress * 304;
+  const sunY = 122 - Math.sin(visualProgress * Math.PI) * 88;
 
   return (
-    <Box sx={{ bgcolor: 'rgba(250, 204, 21, 0.08)', border: '1px solid rgba(250, 204, 21, 0.16)', borderRadius: 3, px: { xs: 2, sm: 3 }, py: 2.5 }}>
-      <Stack alignItems="center" direction="row" justifyContent="space-between" mb={1.5}>
-        <Typography fontWeight={700}>Daylight progression</Typography>
-        <Typography color="text.secondary" variant="caption">{isDaytime ? `${Math.round(progress)}% through daylight` : 'Sun is down'}</Typography>
+    <Box sx={{ mt: 2 }}>
+      <Stack alignItems="center" direction="row" justifyContent="space-between" mb={0.25}>
+        <Typography color="text.secondary" variant="caption">Sun path</Typography>
+        <Typography color="text.secondary" variant="caption">{isDaytime ? `Sun height ${sunHeight}%` : 'Sun below horizon'}</Typography>
       </Stack>
-      <LinearProgress
-        aria-label="Daylight progression"
-        sx={{
-          bgcolor: 'rgba(255,255,255,0.12)',
-          borderRadius: 4,
-          height: 10,
-          '& .MuiLinearProgress-bar': {
-            background: 'linear-gradient(90deg, #facc15, #fb923c)',
-            borderRadius: 4,
-          },
-        }}
-        value={progress}
-        variant="determinate"
-      />
-      <Stack direction="row" justifyContent="space-between" mt={1.25}>
-        <Typography color="text.secondary" variant="caption">Sunrise {formatLocalTime(sunrise, timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
-        <Typography color="text.secondary" variant="caption">Sunset {formatLocalTime(sunset, timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
-      </Stack>
+      <Box component="svg" role="img" aria-label="Sun position between sunrise and sunset" sx={{ display: 'block', height: 'auto', width: '100%' }} viewBox="0 0 360 142">
+        <path d="M 28 122 Q 180 -54 332 122" fill="none" stroke="rgba(250, 204, 21, 0.45)" strokeDasharray="5 5" strokeWidth="2" />
+        <line stroke="rgba(255,255,255,0.22)" strokeWidth="2" x1="18" x2="342" y1="122" y2="122" />
+        <circle cx={sunX} cy={sunY} fill={isDaytime ? '#facc15' : 'rgba(250, 204, 21, 0.4)'} r="10" />
+        <circle cx={sunX} cy={sunY} fill="none" r="16" stroke="rgba(250, 204, 21, 0.25)" strokeWidth="5" />
+      </Box>
     </Box>
   );
 }
@@ -787,14 +778,12 @@ export default function App() {
                       </Box>
                     </Stack>
                   </Stack>
+                  <SunArc
+                    currentTime={weather.dt}
+                    sunrise={weather.sys.sunrise}
+                    sunset={weather.sys.sunset}
+                  />
                 </Box>
-
-                <SunProgress
-                  currentTime={weather.dt}
-                  sunrise={weather.sys.sunrise}
-                  sunset={weather.sys.sunset}
-                  timezone={weather.timezone}
-                />
 
                   </Stack>
                 )}
