@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
 import CompressIcon from '@mui/icons-material/Compress';
 import ExploreIcon from '@mui/icons-material/Explore';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -227,16 +228,35 @@ export default function App() {
                   <WeatherMetric icon={<ExploreIcon />} label="Cloud cover" value={`${weather.clouds.all}%`} />
                 </Box>
 
-                <Box sx={{ bgcolor: 'rgba(125, 211, 252, 0.08)', borderRadius: 3, px: 2.5, py: 2 }}>
-                  <Stack direction="row" justifyContent="space-between">
-                    <Box>
-                      <Typography color="text.secondary" variant="body2">Sunrise</Typography>
-                      <Typography fontWeight={700}>{formatLocalTime(weather.sys.sunrise, weather.timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
-                    </Box>
-                    <Box textAlign="right">
-                      <Typography color="text.secondary" variant="body2">Sunset</Typography>
-                      <Typography fontWeight={700}>{formatLocalTime(weather.sys.sunset, weather.timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
-                    </Box>
+                <Box
+                  sx={{
+                    background: 'linear-gradient(100deg, rgba(250, 204, 21, 0.16), rgba(249, 115, 22, 0.12), rgba(99, 102, 241, 0.16))',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 3,
+                    px: { xs: 2, sm: 3 },
+                    py: 2.5,
+                  }}
+                >
+                  <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={2}>
+                    <Stack alignItems="center" direction="row" spacing={1.25}>
+                      <Box sx={{ bgcolor: 'rgba(250, 204, 21, 0.16)', borderRadius: '50%', color: '#facc15', display: 'grid', p: 1 }}>
+                        <WbSunnyIcon fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography color="text.secondary" variant="body2">Sunrise</Typography>
+                        <Typography fontWeight={800} variant="h6">{formatLocalTime(weather.sys.sunrise, weather.timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
+                      </Box>
+                    </Stack>
+                    <Box sx={{ borderColor: 'rgba(255, 255, 255, 0.18)', borderTop: 1, flexGrow: 1, maxWidth: 100 }} />
+                    <Stack alignItems="center" direction="row" spacing={1.25}>
+                      <Box textAlign="right">
+                        <Typography color="text.secondary" variant="body2">Sunset</Typography>
+                        <Typography fontWeight={800} variant="h6">{formatLocalTime(weather.sys.sunset, weather.timezone, { hour: 'numeric', minute: '2-digit' })}</Typography>
+                      </Box>
+                      <Box sx={{ bgcolor: 'rgba(129, 140, 248, 0.16)', borderRadius: '50%', color: '#a5b4fc', display: 'grid', p: 1 }}>
+                        <BedtimeIcon fontSize="small" />
+                      </Box>
+                    </Stack>
                   </Stack>
                 </Box>
               </Stack>
