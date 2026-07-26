@@ -604,9 +604,6 @@ export default function App() {
                   <Typography color="text.secondary" mt={0.75}>
                     High {Math.round(weather.main.temp_max)}° · Low {Math.round(weather.main.temp_min)}°
                   </Typography>
-                  <Button onClick={() => setActiveSection('details')} size="small" sx={{ mt: 1.5, px: 0 }} variant="text">
-                    View weather details
-                  </Button>
                 </Box>
 
                 <Tabs
