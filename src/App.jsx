@@ -37,6 +37,14 @@ const weatherThemes = {
   Atmosphere: ['#566e73', '#334c53', '#15272d'],
 };
 
+const airQualityLevels = {
+  1: { color: '#86efac', label: 'Good' },
+  2: { color: '#bef264', label: 'Fair' },
+  3: { color: '#facc15', label: 'Moderate' },
+  4: { color: '#fb923c', label: 'Poor' },
+  5: { color: '#f87171', label: 'Very poor' },
+};
+
 function formatLocalTime(timestamp, timezone, options) {
   return new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', ...options })
     .format(new Date((timestamp + timezone) * 1000));
@@ -158,8 +166,31 @@ function WeatherBackdrop({ condition, isDay }) {
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('New York');
   const [weather, setWeather] = useState(null);
+  const [airQuality, setAirQuality] = useState(null);
+  const [airQualityStatus, setAirQualityStatus] = useState('idle');
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
+
+  const fetchAirQuality = async ({ lat, lon }) => {
+    setAirQualityStatus('loading');
+
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`,
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.list?.[0]) {
+        throw new Error(data.message || 'Air quality data is unavailable for this location.');
+      }
+
+      setAirQuality(data.list[0]);
+      setAirQualityStatus('success');
+    } catch {
+      setAirQuality(null);
+      setAirQualityStatus('error');
+    }
+  };
 
   const fetchWeather = async (query) => {
     if (!query) {
@@ -175,6 +206,8 @@ export default function App() {
 
     setStatus('loading');
     setError('');
+    setAirQuality(null);
+    setAirQualityStatus('idle');
 
     try {
       const response = await fetch(
@@ -188,6 +221,7 @@ export default function App() {
 
       setWeather(data);
       setStatus('success');
+      fetchAirQuality(data.coord);
     } catch (requestError) {
       setStatus('error');
       setError(requestError.message || 'Weather data could not be loaded.');
@@ -236,6 +270,7 @@ export default function App() {
   const condition = weather?.weather?.[0];
   const themeColors = weatherThemes[condition?.main] || weatherThemes.Atmosphere;
   const isDay = weather && weather.dt >= weather.sys.sunrise && weather.dt < weather.sys.sunset;
+  const airQualityLevel = airQuality && airQualityLevels[airQuality.main.aqi];
   const currentTime = weather && formatLocalTime(
     weather.dt,
     weather.timezone,
@@ -367,6 +402,45 @@ export default function App() {
                   <WeatherMetric icon={<VisibilityIcon />} label="Visibility" value={`${(weather.visibility / 1609.344).toFixed(1)} mi`} />
                   <WeatherMetric icon={<CompressIcon />} label="Pressure" value={`${weather.main.pressure} hPa`} />
                   <WeatherMetric icon={<ExploreIcon />} label="Cloud cover" value={`${weather.clouds.all}%`} />
+                </Box>
+
+                <Box
+                  sx={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 3,
+                    px: { xs: 2, sm: 3 },
+                    py: 2.5,
+                  }}
+                >
+                  <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
+                    <Stack alignItems="center" direction="row" spacing={1.25}>
+                      <Box sx={{ bgcolor: 'rgba(125, 211, 252, 0.12)', borderRadius: 2, color: 'primary.main', display: 'grid', p: 1 }}>
+                        <AirIcon />
+                      </Box>
+                      <Box>
+                        <Typography fontWeight={700}>Air quality</Typography>
+                        <Typography color="text.secondary" variant="body2">
+                          {airQualityStatus === 'loading' && 'Loading local air data...'}
+                          {airQualityStatus === 'error' && 'Air quality data is unavailable.'}
+                          {airQualityStatus === 'success' && 'Current air pollution levels'}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    {airQualityLevel && (
+                      <Box sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, bgcolor: `${airQualityLevel.color}22`, border: `1px solid ${airQualityLevel.color}66`, borderRadius: 8, color: airQualityLevel.color, px: 1.5, py: 0.5 }}>
+                        <Typography fontWeight={800} variant="body2">AQI {airQuality.main.aqi} · {airQualityLevel.label}</Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                  {airQuality && (
+                    <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(4, 1fr)', mt: 2.5 }}>
+                      <Box><Typography color="text.secondary" variant="caption">PM2.5</Typography><Typography fontWeight={700}>{airQuality.components.pm2_5.toFixed(1)}</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">PM10</Typography><Typography fontWeight={700}>{airQuality.components.pm10.toFixed(1)}</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">O₃</Typography><Typography fontWeight={700}>{airQuality.components.o3.toFixed(1)}</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">NO₂</Typography><Typography fontWeight={700}>{airQuality.components.no2.toFixed(1)}</Typography></Box>
+                    </Box>
+                  )}
                 </Box>
 
                 <Box
