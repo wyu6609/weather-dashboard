@@ -139,11 +139,11 @@ function ForecastRail({ ariaLabel, children }) {
 
 function PrecipitationChart({ periods, timezone }) {
   const data = periods.slice(0, 8);
-  const chartWidth = 640;
-  const chartHeight = 150;
-  const chartTop = 18;
-  const chartBottom = 118;
-  const barWidth = 42;
+  const chartWidth = 375;
+  const chartHeight = 165;
+  const chartTop = 22;
+  const chartBottom = 132;
+  const barWidth = 28;
   const gap = (chartWidth - data.length * barWidth) / (data.length + 1);
 
   return (
@@ -158,7 +158,7 @@ function PrecipitationChart({ periods, timezone }) {
           return (
             <g key={level}>
               <line stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" x1="0" x2={chartWidth} y1={y} y2={y} />
-              <text fill="rgba(255,255,255,0.55)" fontSize="11" textAnchor="end" x="636" y={y - 4}>{level}%</text>
+              <text fill="rgba(255,255,255,0.64)" fontSize="12" textAnchor="end" x="371" y={y - 5}>{level}%</text>
             </g>
           );
         })}
@@ -170,10 +170,12 @@ function PrecipitationChart({ periods, timezone }) {
           return (
             <g key={period.dt}>
               <rect fill="rgba(125, 211, 252, 0.72)" height={height} rx="6" width={barWidth} x={x} y={y} />
-              <text fill="#e0f2fe" fontSize="11" fontWeight="700" textAnchor="middle" x={x + barWidth / 2} y={Math.max(y - 5, 13)}>{chance}%</text>
-              <text fill="rgba(255,255,255,0.6)" fontSize="11" textAnchor="middle" x={x + barWidth / 2} y="140">
-                {formatLocalTime(period.dt, timezone, { hour: 'numeric' })}
-              </text>
+              <text fill="#e0f2fe" fontSize="12" fontWeight="700" textAnchor="middle" x={x + barWidth / 2} y={Math.max(y - 6, 15)}>{chance}%</text>
+              {index % 2 === 0 && (
+                <text fill="rgba(255,255,255,0.7)" fontSize="12" textAnchor="middle" x={x + barWidth / 2} y="154">
+                  {formatLocalTime(period.dt, timezone, { hour: 'numeric' })}
+                </text>
+              )}
             </g>
           );
         })}
