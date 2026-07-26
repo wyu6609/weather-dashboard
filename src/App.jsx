@@ -531,13 +531,13 @@ export default function App() {
                   </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
                   {forecastStatus === 'success' && forecastMode === 'hourly' && (
-                    <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.75, scrollbarWidth: 'thin' }}>
+                    <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 }, overflowX: 'auto', pb: 1, scrollbarWidth: 'thin', scrollSnapType: 'x mandatory' }}>
                       {forecast.slice(0, 5).map((period) => (
                         <Stack
                           alignItems="center"
                           key={period.dt}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: '0 0 78px', px: 1, py: 1.25 }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: { xs: '0 0 92px', sm: '0 0 96px' }, px: 1.25, py: 1.5, scrollSnapAlign: 'start' }}
                         >
                           <Typography color="text.secondary" variant="caption">
                             {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
@@ -553,13 +553,13 @@ export default function App() {
                 {forecastStatus === 'success' && forecastMode === 'daily' && (
                   <Box>
                     <Typography color="text.secondary" mb={1.5} variant="body2">Five-day outlook</Typography>
-                    <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.75, scrollbarWidth: 'thin' }}>
+                    <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 }, overflowX: 'auto', pb: 1, scrollbarWidth: 'thin', scrollSnapType: 'x mandatory' }}>
                       {dailyForecast.map((day) => (
                         <Stack
                           alignItems="center"
                           key={day.day}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, flex: '0 0 78px', px: 1, py: 1.25 }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, flex: { xs: '0 0 92px', sm: '0 0 96px' }, px: 1.25, py: 1.5, scrollSnapAlign: 'start' }}
                         >
                           <Typography fontWeight={700} variant="body2">{day.day}</Typography>
                           <Box alt={day.condition.description} component="img" src={`https://openweathermap.org/img/wn/${day.condition.icon}.png`} sx={{ height: 40, width: 40 }} />
@@ -614,11 +614,11 @@ export default function App() {
                     )}
                   </Stack>
                   {airQuality && (
-                    <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(4, 1fr)', mt: 2.5 }}>
-                      <Box><Typography color="text.secondary" variant="caption">PM2.5</Typography><Typography fontWeight={700}>{airQuality.components.pm2_5.toFixed(1)}</Typography></Box>
-                      <Box><Typography color="text.secondary" variant="caption">PM10</Typography><Typography fontWeight={700}>{airQuality.components.pm10.toFixed(1)}</Typography></Box>
-                      <Box><Typography color="text.secondary" variant="caption">O₃</Typography><Typography fontWeight={700}>{airQuality.components.o3.toFixed(1)}</Typography></Box>
-                      <Box><Typography color="text.secondary" variant="caption">NO₂</Typography><Typography fontWeight={700}>{airQuality.components.no2.toFixed(1)}</Typography></Box>
+                    <Box sx={{ display: 'grid', gap: { xs: 1.25, sm: 2 }, gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, mt: 2.5 }}>
+                      <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1.5, px: 1.25, py: 1 }}><Typography color="text.secondary" variant="caption">PM2.5</Typography><Typography fontWeight={700}>{airQuality.components.pm2_5.toFixed(1)}</Typography></Box>
+                      <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1.5, px: 1.25, py: 1 }}><Typography color="text.secondary" variant="caption">PM10</Typography><Typography fontWeight={700}>{airQuality.components.pm10.toFixed(1)}</Typography></Box>
+                      <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1.5, px: 1.25, py: 1 }}><Typography color="text.secondary" variant="caption">O₃</Typography><Typography fontWeight={700}>{airQuality.components.o3.toFixed(1)}</Typography></Box>
+                      <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1.5, px: 1.25, py: 1 }}><Typography color="text.secondary" variant="caption">NO₂</Typography><Typography fontWeight={700}>{airQuality.components.no2.toFixed(1)}</Typography></Box>
                     </Box>
                   )}
                 </Box>
