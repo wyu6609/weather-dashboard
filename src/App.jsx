@@ -16,6 +16,7 @@ import {
   Box,
   Button,
   Chip,
+  Collapse,
   CircularProgress,
   Container,
   Divider,
@@ -51,6 +52,34 @@ const airQualityLevels = {
 function formatLocalTime(timestamp, timezone, options) {
   return new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', ...options })
     .format(new Date((timestamp + timezone) * 1000));
+}
+
+function getDailyForecast(periods, timezone) {
+  const days = new Map();
+
+  periods.forEach((period) => {
+    const date = formatLocalTime(period.dt, timezone, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const existing = days.get(date);
+
+    if (existing) {
+      existing.high = Math.max(existing.high, period.main.temp_max);
+      existing.low = Math.min(existing.low, period.main.temp_min);
+      return;
+    }
+
+    days.set(date, {
+      condition: period.weather[0],
+      day: formatLocalTime(period.dt, timezone, { weekday: 'short' }),
+      high: period.main.temp_max,
+      low: period.main.temp_min,
+    });
+  });
+
+  return Array.from(days.values()).slice(0, 5);
 }
 
 function WeatherMetric({ icon, label, value }) {
@@ -174,6 +203,7 @@ export default function App() {
   const [forecast, setForecast] = useState([]);
   const [forecastStatus, setForecastStatus] = useState('idle');
   const [recentLocations, setRecentLocations] = useState([]);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
 
@@ -211,7 +241,7 @@ export default function App() {
         throw new Error(data.message || 'Forecast data is unavailable for this location.');
       }
 
-      setForecast(data.list.slice(0, 5));
+      setForecast(data.list);
       setForecastStatus('success');
     } catch {
       setForecast([]);
@@ -319,10 +349,19 @@ export default function App() {
     fetchWeather(`q=${encodeURIComponent(location)}`);
   };
 
+  const toggleDetails = (event) => {
+    if (event.target.closest('button, input, [role="button"]')) {
+      return;
+    }
+
+    setIsDetailsExpanded((expanded) => !expanded);
+  };
+
   const condition = weather?.weather?.[0];
   const themeColors = weatherThemes[condition?.main] || weatherThemes.Atmosphere;
   const isDay = weather && weather.dt >= weather.sys.sunrise && weather.dt < weather.sys.sunset;
   const airQualityLevel = airQuality && airQualityLevels[airQuality.main.aqi];
+  const dailyForecast = weather ? getDailyForecast(forecast, weather.timezone) : [];
   const currentTime = weather && formatLocalTime(
     weather.dt,
     weather.timezone,
@@ -359,6 +398,7 @@ export default function App() {
           '94%, 95%': { opacity: 0.8 },
         },
       }}
+      onClick={toggleDetails}
     >
       <WeatherBackdrop condition={condition} isDay={isDay} />
       <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
@@ -467,7 +507,7 @@ export default function App() {
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
                   {forecastStatus === 'success' && (
                     <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', overflowX: 'auto' }}>
-                      {forecast.map((period) => (
+                      {forecast.slice(0, 5).map((period) => (
                         <Stack
                           alignItems="center"
                           key={period.dt}
@@ -484,6 +524,27 @@ export default function App() {
                     </Box>
                   )}
                 </Box>
+
+                {forecastStatus === 'success' && (
+                  <Box>
+                    <Typography fontWeight={700} mb={1.5} variant="h6">This week</Typography>
+                    <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', overflowX: 'auto' }}>
+                      {dailyForecast.map((day) => (
+                        <Stack
+                          alignItems="center"
+                          key={day.day}
+                          spacing={0.5}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, minWidth: 74, px: 1, py: 1.25 }}
+                        >
+                          <Typography fontWeight={700} variant="body2">{day.day}</Typography>
+                          <Box alt={day.condition.description} component="img" src={`https://openweathermap.org/img/wn/${day.condition.icon}.png`} sx={{ height: 40, width: 40 }} />
+                          <Typography fontWeight={700} variant="body2">{Math.round(day.high)}°</Typography>
+                          <Typography color="text.secondary" variant="caption">{Math.round(day.low)}°</Typography>
+                        </Stack>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
 
                 <Divider />
 
@@ -566,6 +627,21 @@ export default function App() {
                     </Stack>
                   </Stack>
                 </Box>
+
+                <Collapse in={isDetailsExpanded}>
+                  <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)', borderLeft: '3px solid', borderColor: 'primary.main', borderRadius: 2, px: 2.5, py: 2 }}>
+                    <Typography fontWeight={700} variant="subtitle2">Expanded weather details</Typography>
+                    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, mt: 1.5 }}>
+                      <Box><Typography color="text.secondary" variant="caption">Wind direction</Typography><Typography fontWeight={700}>{weather.wind.deg ?? '—'}°</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">Wind gust</Typography><Typography fontWeight={700}>{weather.wind.gust ? `${Math.round(weather.wind.gust)} mph` : '—'}</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">Sea level</Typography><Typography fontWeight={700}>{weather.main.sea_level ? `${weather.main.sea_level} hPa` : '—'}</Typography></Box>
+                      <Box><Typography color="text.secondary" variant="caption">Coordinates</Typography><Typography fontWeight={700}>{weather.coord.lat.toFixed(2)}°, {weather.coord.lon.toFixed(2)}°</Typography></Box>
+                    </Box>
+                  </Box>
+                </Collapse>
+                <Typography align="center" color="text.secondary" variant="caption">
+                  Click the dashboard background to {isDetailsExpanded ? 'hide' : 'show'} expanded details.
+                </Typography>
               </Stack>
             </Paper>
           )}
