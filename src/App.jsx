@@ -506,13 +506,13 @@ export default function App() {
                   </Stack>
                   {forecastStatus === 'loading' && <Typography color="text.secondary" variant="body2">Loading forecast...</Typography>}
                   {forecastStatus === 'success' && (
-                    <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', overflowX: 'auto' }}>
+                    <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.75, scrollbarWidth: 'thin' }}>
                       {forecast.slice(0, 5).map((period) => (
                         <Stack
                           alignItems="center"
                           key={period.dt}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, minWidth: 74, px: 1, py: 1.25 }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, flex: '0 0 78px', px: 1, py: 1.25 }}
                         >
                           <Typography color="text.secondary" variant="caption">
                             {formatLocalTime(period.dt, weather.timezone, { hour: 'numeric' })}
@@ -528,13 +528,13 @@ export default function App() {
                 {forecastStatus === 'success' && (
                   <Box>
                     <Typography fontWeight={700} mb={1.5} variant="h6">This week</Typography>
-                    <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', overflowX: 'auto' }}>
+                    <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.75, scrollbarWidth: 'thin' }}>
                       {dailyForecast.map((day) => (
                         <Stack
                           alignItems="center"
                           key={day.day}
                           spacing={0.5}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, minWidth: 74, px: 1, py: 1.25 }}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.04)', borderRadius: 2, flex: '0 0 78px', px: 1, py: 1.25 }}
                         >
                           <Typography fontWeight={700} variant="body2">{day.day}</Typography>
                           <Box alt={day.condition.description} component="img" src={`https://openweathermap.org/img/wn/${day.condition.icon}.png`} sx={{ height: 40, width: 40 }} />
